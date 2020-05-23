@@ -306,31 +306,20 @@ void Crc32cSSE4::Init(bool constant) {
 }
 
 
+#if defined(__GNUC__)
+#include <cpuid.h>
+#endif
+
 bool Crc32cSSE4::IsSSE42Available() {
 #if defined(_MSC_VER)
   int cpu_info[4];
   __cpuid(cpu_info, 1);
-  return ((cpu_info[3] & (1 << 20)) != 0);
+  return ((cpu_info[2] & (1 << 20)) != 0);
 #elif defined(__GNUC__) && (HAVE_AMD64 || HAVE_I386)
-  // Not using "cpuid.h" intentionally: it is missing from
-  // too many installations.
-  uint32 eax;
-  uint32 ecx;
-  uint32 edx;
-  __asm__ volatile(
-#if HAVE_I386 && defined(__PIC__)
-    "push ebx\n"
-    "cpuid\n"
-    "pop ebx\n"
-#else
-    "cpuid\n"
-#endif  // HAVE_I386 && defined(__PIC__)
-    : "=a" (eax), "=c" (ecx), "=d" (edx)
-    : "a" (1), "2" (0)
-    : "%ebx"
-  );
-  return ((ecx & (1 << 20)) != 0);
-#else
+  unsigned int eax, ebx, ecx = 0, edx;
+  __get_cpuid(1, &eax, &ebx, &ecx, &edx);
+  return (ecx & (1 << 20)) != 0;
+#else  // defined(_MSC_VER)
   return false;
 #endif
 }
