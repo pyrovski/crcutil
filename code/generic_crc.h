@@ -201,7 +201,6 @@ template<typename _Crc, typename _TableEntry, typename _Word, int kStride>
   // Returns base class.
   const GfUtil<Crc> &Base() const { return base_; }
 
- protected:
   // Canonical, byte-by-byte CRC computation.
   Crc CrcByte(const void *data, size_t bytes, const Crc &start) const {
     const uint8 *src = static_cast<const uint8 *>(data);
